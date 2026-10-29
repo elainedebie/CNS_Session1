@@ -1,10 +1,33 @@
-I have standardised the keys for my IoT devices so they are easier to program! I think this is really smart, since the devices are simple I decided to use DES as the encryption algorithm.
+With your previous attack on Secure Bank, they decided to hire you as a security expert.
+They have updated their payment system but due to the money lost during your previous hack, they don't have enough money to store the full fingerprint in their database anymore, you might be able to make use of that!
+API details:
 
-{ "namespace": "IOTDEV", "message": "74eb40cf03b84d0bc4cd2c6e0fe97fb4e70546d3e09c530d35b344e530351bac" }
+```
+Address: cns-test.idlab.uantwerpen.be
+Port: 50003
 
-"namespace": "IOTDEV" = hint naar de key
-"DES" = verouderd blokcijfer met keylength 56 bits. werkt met blokken
-        van 8 bytes en DES-key is altijd exact 8 bytes (64 bits)
+```
 
-De JSON: {"namespace": "IOTDEV", "message": "74eb40cf03..."}.
-De message is waarschijnlijk de hexadecimale weergave van de versleutelde data.
+Payment Protocol: The server expects two JSON payment records, each on a separate line. It validates both records and returns their audit fingerprints.
+Each record must contain exactly these fields:
+Field; Type; Requirements
+
+* reference; String; 1–128 characters
+* from_account; String; Must start with SIM-
+* to_account; String; Must start with SIM- (different from source)
+* amount; Number; Must equal 10
+* currency; String; Must be EUR
+* timestamp; String; Valid ISO 8601 timestamp
+
+To send the JSON:
+
+```
+def canonicalize(payment):
+    return json.dumps(
+        payment,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+    ).encode("utf-8")
+
+```
