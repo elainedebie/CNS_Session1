@@ -1,33 +1,23 @@
-With your previous attack on Secure Bank, they decided to hire you as a security expert.
-They have updated their payment system but due to the money lost during your previous hack, they don't have enough money to store the full fingerprint in their database anymore, you might be able to make use of that!
-API details:
+See the code below, I don't think it's a better hash:
 
-```
-Address: cns-test.idlab.uantwerpen.be
-Port: 50003
+def rol(x, n):
+    return ((x << n) | (x >> (8 - n))) & 0xff
 
-```
+def better_hash(msg):
+    state = bytearray(msg.encode())
 
-Payment Protocol: The server expects two JSON payment records, each on a separate line. It validates both records and returns their audit fingerprints.
-Each record must contain exactly these fields:
-Field; Type; Requirements
+    for rnd in range(8):
 
-* reference; String; 1–128 characters
-* from_account; String; Must start with SIM-
-* to_account; String; Must start with SIM- (different from source)
-* amount; Number; Must equal 10
-* currency; String; Must be EUR
-* timestamp; String; Valid ISO 8601 timestamp
+        for i in range(len(state)):
+            state[i] ^= (rnd * 41 + i * 17) & 0xff
+            state[i] = rol(state[i], (rnd + i) & 7)
 
-To send the JSON:
+        for i in range(1, len(state)):
+            state[i] ^= state[i - 1]
 
-```
-def canonicalize(payment):
-    return json.dumps(
-        payment,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=True,
-    ).encode("utf-8")
+        state = state[1:] + state[:1]
 
-```
+    return state.hex()
+
+print(better_hash(FLAG))
+Hash: 5f070b54361613bca31a123e95321cff154ba64f549bb34fdc7688f10efb569aed4ccbd6ba
