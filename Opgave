@@ -1,24 +1,10 @@
-Secure Bank has unleashed their newest CLI-based money transfer tool: Connect using nc cns-test.idlab.uantwerpen.be 50001 now!
+I have standardised the keys for my IoT devices so they are easier to program! I think this is really smart, since the devices are simple I decided to use DES as the encryption algorithm.
 
-They internally use super secure Salsa20 encryption using their proprietary JSON formatted transaction format (see file). Maybe you can hack it to pay Bob back the money you owe him...
+{ "namespace": "IOTDEV", "message": "74eb40cf03b84d0bc4cd2c6e0fe97fb4e70546d3e09c530d35b344e530351bac" }
 
-(In case you try this at home, you need to be connected to the UA-VPN)
+"namespace": "IOTDEV" = hint naar de key
+"DES" = verouderd blokcijfer met keylength 56 bits. werkt met blokken
+        van 8 bytes en DES-key is altijd exact 8 bytes (64 bits)
 
-Hint:
-
-def encrypt_transaction(transaction):
-    """Encrypt a transaction using Salsa20."""
-    nonce = secrets.token_bytes(8)
-
-    cipher = Salsa20.new(key=KEY, nonce=nonce)
-
-    plaintext = json.dumps(
-        transaction,
-        separators=(",", ":")
-    ).encode()
-    print(plaintext)
-
-    ciphertext = cipher.encrypt(plaintext)
-
-    # Transmit nonce alongside ciphertext
-    return nonce + ciphertext
+De JSON: {"namespace": "IOTDEV", "message": "74eb40cf03..."}.
+De message is waarschijnlijk de hexadecimale weergave van de versleutelde data.
