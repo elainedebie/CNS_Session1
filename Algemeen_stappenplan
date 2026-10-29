@@ -1,0 +1,18 @@
+Stappenplan voor JWT-opgaven
+1. Verken de server. Root geeft vaak 404; zoek de endpoints:
+
+for p in login admin guest token auth; do
+  echo "/$p -> $(curl -s -o /dev/null -w '%{http_code}' SITE)"; done
+
+Niet-404 is interessant. 405 Method Not Allowed + Allow: GET zegt welke methode het endpoint wil.
+2. Haal je token op (login-endpoint). Kijk of het in de body of als Set-Cookie: komt — dat bepaalt later hoe je het terugstuurt.
+3. Ontleed het token:
+
+python3 jwt_forge.py <token>
+
+Lees de header (alg?) en payload (welk veld = je rol, bv. role, admin, user).
+4. Vervals en vuur in één keer af:
+
+python3 jwt_forge.py <token> --set role=admin --url http://HOST:PORT/admin
+
+Dit bouwt de alg=none-varianten (none/None/NONE) en stuurt elk als Bearer-header én als cookie naar /admin. De regel met een 200 en cns{...} is raak.

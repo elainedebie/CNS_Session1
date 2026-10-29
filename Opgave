@@ -1,0 +1,7 @@
+The Vault issues you a session token when you log in, and checks it before letting anyone into the admin area. You’ve been given a guest account. The admin area is off-limits to you… or is it?
+
+Log in to get your token, inspect it closely, and find a way to walk into /admin as an administrator. You will not need to know, guess, or crack the server’s secret key.
+
+Target: http://cns-test.idlab.uantwerpen.be:50009
+
+Tip: a JSON Web Token is three base64url parts separated by dots {e.g.: header.payload.signature.} Decode them and read what each part says.
