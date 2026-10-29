@@ -1,23 +1,5 @@
-See the code below, I don't think it's a better hash:
+We found a way to connect to a Mars Relay station, we patched it through to our servers:
 
-def rol(x, n):
-    return ((x << n) | (x >> (8 - n))) & 0xff
+cns-test.idlab.uantwerpen.be 50006
 
-def better_hash(msg):
-    state = bytearray(msg.encode())
-
-    for rnd in range(8):
-
-        for i in range(len(state)):
-            state[i] ^= (rnd * 41 + i * 17) & 0xff
-            state[i] = rol(state[i], (rnd + i) & 7)
-
-        for i in range(1, len(state)):
-            state[i] ^= state[i - 1]
-
-        state = state[1:] + state[:1]
-
-    return state.hex()
-
-print(better_hash(FLAG))
-Hash: 5f070b54361613bca31a123e95321cff154ba64f549bb34fdc7688f10efb569aed4ccbd6ba
+Can you investigate it?

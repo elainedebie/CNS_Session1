@@ -1,25 +1,19 @@
+1. nc cns-test.idlab.uantwerpen.be 50006
 
-(.venv) elainedebie@MacBook-Air-van-Elaine-7809 Opgave1_SecureBank2 % python3 probe.py
-VERSTUURD record1 canonical: {"amount":10,"currency":"EUR","from_account":"SIM-AAA","reference":"probe-1","timestamp":"2026-10-28T12:00:00Z","to_account":"SIM-BBB"}
-BANNER: ========================================
- SECUREBANK PAYMENT RECONCILIATION API
-             STAGING SYSTEM
-========================================
-Legacy audit fingerprints match payments
-across internal reporting systems.
+2.
+=================================
+ MARS RELAY AUTHENTICATION
+=================================
 
-Find two different valid payments that share
-the same audit fingerprint.
+Authentication codes are generated
+from hashed orbital telemetry.
 
-Fingerprint: truncated SHA-256
-Input: one JSON payment per line
+Predict the next authentication code
+before it is transmitted.
 
-Required fields:
-reference, from_account, to_account,
-amount, currency, timestamp
-Current time: 2026-10-28T14:12:32.711085+00:00
+Codes are hexadecimal.
 
-Payment 1:
 
-ANTWOORD:
-Payment rejected: Timestamp must be within the previous minute.
+CURRENT CODE: 0e771df3c602d0ab76bd51fa7a56b552cf4a8f42e17563417e3eb3508a199e49
+...
+Voer script uit om N aantal codes te voorspellen
