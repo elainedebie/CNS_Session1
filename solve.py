@@ -1,101 +1,54 @@
-#!/usr/bin/env python3
 """
-Solver voor de stream-cipher reuse opgave.
+secure_bank_solve.py - stream-cipher malleability-exploit (SecureBank / Salsa20).
 
-Werking:
-1. Herstel de keystream met known plaintext: K = C_public XOR P_public.
-2. Herstel de LCG-state modulo 2^24 met brute-force over de onbekende 16 bits.
-3. Genereer de keystream verder en decrypt secret.txt.
+Zwakte: stream cipher (C = P XOR keystream) + geen integriteit (geen MAC).
+Ken je de plaintext, dan forge je elke transactie van dezelfde lengte - zonder
+sleutel - door de ciphertext te XOR-en. De nonce stuur je gewoon mee terug.
+
+Volledige aanpak, in één run:
+ 1) verbind, lees de pending blob (nonce + ciphertext)
+ 2) gebruik de BEKENDE plaintext (achterhaald door de blob 1x ongewijzigd in te
+    sturen -> "Transfer of 10 EUR to bob")
+ 3) recover keystream = ct XOR bekende_pt
+ 4) forge: nieuwe_ct = keystream XOR gewenste_pt
+ 5) stuur nonce + nieuwe_ct in -> flag
 """
+import socket, re, json
 
-A = 1103515245
-C = 12345
-MASK24 = (1 << 24) - 1
+HOST, PORT = "cns-test.idlab.uantwerpen.be", 50001
+NONCE_LEN = 8   # Salsa20
 
-# Uit public.txt
-public_ct = bytes.fromhex(
-    "22135cc0b9daa9e717f98a998e6ee5e92655e1a88f"
-)
-known_pt = b"STATUS: SERVER ONLINE"
+# --- VUL IN: wat je weet en wat je wil (zelfde lengte!) ---
+KNOWN   = b'{"from":"alice","to":"bob","amount":"000010"}'   # amount 10, 6-teken-veld
+DESIRED = b'{"from":"alice","to":"bob","amount":"999999"}'   # betaal bob een berg geld
+assert len(KNOWN) == len(DESIRED)
 
-# Uit secret.txt
-secret_ct = bytes.fromhex(
-    "12296eef9eece6b42dd2bf90aa63b6d21a7cc98b95c78b4b01d833d628a941b82fb65176b4ed3c3f64"
-)
+def recv_until(s, marker, limit=8192):
+    data = b""
+    s.settimeout(6)
+    try:
+        while marker not in data and len(data) < limit:
+            c = s.recv(4096)
+            if not c: break
+            data += c
+    except Exception:
+        pass
+    return data.decode(errors="replace")
 
+s = socket.create_connection((HOST, PORT), timeout=10)
+banner = recv_until(s, b"Submit the transaction")
+print(banner)
 
-def recover_known_keystream(ciphertext, plaintext):
-    """K = C XOR P voor de bekende plaintext."""
-    return bytes(c ^ p for c, p in zip(ciphertext, plaintext))
+m = re.search(r"\b([0-9a-f]{40,})\b", banner)      # de pending blob (hex)
+blob = bytes.fromhex(m.group(1))
+nonce, ct = blob[:NONCE_LEN], blob[NONCE_LEN:]
+print("nonce:", nonce.hex(), "| plaintext-lengte:", len(ct))
 
+keystream = bytes(c ^ k for c, k in zip(ct, KNOWN))           # stap 3
+forged_ct = bytes(ks ^ d for ks, d in zip(keystream, DESIRED))  # stap 4
+forged = (nonce + forged_ct).hex()
+print("forged blob:", forged)
 
-def next_state24(state):
-    """LCG-state modulo 2^24."""
-    return (A * state + C) & MASK24
-
-
-def recover_state24(keystream):
-    """
-    Herstel de LCG-state modulo 2^24.
-
-    De keystream-byte is (state >> 16) & 0xff.
-    De bovenste 8 bits van de 24-bit state zijn dus bekend.
-    De onderste 16 bits brute-forcen we.
-    """
-    first_byte = keystream[0]
-
-    for low16 in range(1 << 16):
-        state = (first_byte << 16) | low16
-        st = state
-        ok = True
-
-        for k in keystream:
-            if ((st >> 16) & 0xff) != k:
-                ok = False
-                break
-            st = next_state24(st)
-
-        if ok:
-            return state
-
-    raise ValueError("Geen geldige LCG-state gevonden")
-
-
-def generate_keystream_from_state(state, length):
-    """
-    Genereer keystream vanaf een state waarvan de eerste output
-    al de eerste keystream-byte is.
-    """
-    out = bytearray()
-    st = state
-
-    for _ in range(length):
-        out.append((st >> 16) & 0xff)
-        st = next_state24(st)
-
-    return bytes(out)
-
-
-def xor_bytes(a, b):
-    return bytes(x ^ y for x, y in zip(a, b))
-
-
-def main():
-    known_ks = recover_known_keystream(public_ct, known_pt)
-
-    print("[+] Bekende keystream:")
-    print(known_ks.hex())
-
-    state = recover_state24(known_ks)
-    print(f"[+] Herstelde state mod 2^24: 0x{state:06x}")
-
-    secret_ks = generate_keystream_from_state(state, len(secret_ct))
-
-    flag = xor_bytes(secret_ct, secret_ks)
-
-    print("[+] Flag:")
-    print(flag.decode(errors="replace"))
-
-
-if __name__ == "__main__":
-    main()
+s.sendall((forged + "\n").encode())                           # stap 5
+print(recv_until(s, b"}", limit=16384))                       # flag (cns{...})
+s.close()

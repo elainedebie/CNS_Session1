@@ -1,0 +1,22 @@
+nc cns-test.idlab.uantwerpen.be 50001
+
+(.venv) elainedebie@MacBook-Air-van-Elaine-7809 Opgave2_SecureBank % nc cns-test.idlab.uantwerpen.be 50001
+================================
+       SECUREBANK SERVER
+================================
+Welcome, alice!
+Balance: 100 EUR
+
+Your pending transaction:
+13951186eab18113b824b12dd075b91a5f1a01f1caad8c517e1366d6ebaafd9af8beed6b9fee197e4127e7206f9514f3ca093cc8fb
+
+Submit the transaction (hex):
+13951186eab18113b824b12dd075b91a5f1a01f1caad8c517e1366d6ebaafd9af8beed6b9fee197e4127e7206f9514f3ca093cc8fb
+
+Transfer of 10 EUR to bob processed.
+Transaction completed.
+
+
+je bent alice (balans 100), krijgt een pending transaction (nonce + ciphertext als hex), en moet een transactie in hex insturen. Klassieke malleability-opzet
+------------------------------------------------------------------------------
+
